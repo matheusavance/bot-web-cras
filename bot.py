@@ -1,6 +1,10 @@
 
 import botcity.web
 from shutil import move, rmtree
+from openpyxl import Workbook
+from openpyxl import load_workbook
+from openpyxl.styles import Font, Border, Side
+from openpyxl.styles import PatternFill
 from webdriver_auto_update.chrome_app_utils import ChromeAppUtils
 from webdriver_auto_update.webdriver_manager import WebDriverManager
 from botcity.web.browsers.chrome import default_options
@@ -44,7 +48,7 @@ def pesquisa_cras():
     for i in range(20):
         bot.page_down()    
 
-def extrai_dados_cras():
+def extrai_dados_cras(path_planilha):
     """
     Coleta os dados de cada cras achado na pesquisa do maps.
     """
@@ -53,7 +57,7 @@ def extrai_dados_cras():
     for item_cras in range(quantidade_cras):
         # Clica no card do CRAS
         bot.execute_javascript(f'document.getElementsByClassName("hfpxzc")[{item_cras}].click()')
-        bot.wait(2000)
+        bot.wait(4000)
 
         # Armazena o nome do CRAS
         # nome_cras = bot.execute_javascript(f'return document.getElementsByClassName("hfpxzc")[{cras}].ariaLabel')
@@ -70,7 +74,7 @@ def extrai_dados_cras():
                 telefone = texto_botao_card
                 break
             else:
-                telefone = ''
+                telefone = 'Sem telefone'
             
         # Armazena o link do maps do CRAS
         bot.execute_javascript('document.getElementsByClassName("m6QErb Pf6ghf XiKgde ecceSd tLjsW ")[0].children[4].children[0].click()')
@@ -84,27 +88,27 @@ def extrai_dados_cras():
             texto_botao_avaliacoes = bot.execute_javascript(f'return document.getElementsByClassName("LRkQ2")[1].textContent')
             if texto_botao_avaliacoes == 'Avaliações':
                 bot.execute_javascript(f'document.getElementsByClassName("LRkQ2")[1].click()')
-                bot.wait(2000)
+                bot.wait(4000)
             else:
-                linha_saida_folha_cras = preenche_folha_cras(nome_cras, endereco, telefone, link_maps, quantidade_avaliacoes='Não existem avaliações', nota_cras='')
+                linha_saida_folha_cras = preenche_folha_cras(nome_cras, endereco, telefone, link_maps, path_planilha, quantidade_avaliacoes='Não existem avaliações', nota_cras='')
                 continue  
         else:
-            linha_saida_folha_cras = preenche_folha_cras(nome_cras, endereco, telefone, link_maps, quantidade_avaliacoes='Não existem avaliações', nota_cras='')
+            linha_saida_folha_cras = preenche_folha_cras(nome_cras, endereco, telefone, link_maps, path_planilha, quantidade_avaliacoes='Não existem avaliações', nota_cras='')
             continue
         
         # Armazena a nota e a quantidades de avaliações do CRAS
         quantidade_avaliacoes = bot.find_element('/html/body/div[1]/div[3]/div[8]/div[9]/div/div/div[1]/div[3]/div/div[1]/div/div/div[3]/div[2]/div/div[2]/div[3]', By.XPATH).text
         nota_cras = bot.execute_javascript(f'return document.getElementsByClassName("fontDisplayLarge")[0].textContent')
-
+        
         # Preenche a folhas 'CRAS' da planilha com os dados extraídos
-        linha_saida_folha_cras = preenche_folha_cras(nome_cras, endereco, telefone, link_maps, quantidade_avaliacoes, nota_cras) 
+        linha_saida_folha_cras = preenche_folha_cras(nome_cras, endereco, telefone, link_maps, path_planilha, quantidade_avaliacoes, nota_cras) 
 
         # Extrai dados sobre os comentários do CRAS
-        linha_saida_folha_comentarios  = extrai_dados_comentarios_cras(nome_cras)
+        linha_saida_folha_comentarios  = extrai_dados_comentarios_cras(nome_cras, path_planilha)
 
     return nome_cras, linha_saida_folha_cras, linha_saida_folha_comentarios 
    
-def extrai_dados_comentarios_cras(nome_cras):
+def extrai_dados_comentarios_cras(nome_cras, path_planilha):
     """
     Coleta os dados dos comentários de cada cras achado na pesquisa do maps.\n
     :param: nome_cras
@@ -134,12 +138,12 @@ def extrai_dados_comentarios_cras(nome_cras):
         except:
             texto_comentario = 'Não existem comentários'
 
-        linha_saida_folha_comentarios = preenche_folha_comentarios(nome_cras, id_comentario, data_comentario, nota_comentario, quantidade_comentarios_usuario, texto_comentario)
+        linha_saida_folha_comentarios = preenche_folha_comentarios(nome_cras, id_comentario, data_comentario, nota_comentario, path_planilha, quantidade_comentarios_usuario, texto_comentario)
         contador_childElements += 1
 
     return linha_saida_folha_comentarios 
 
-def preenche_folha_cras(nome_cras, endereco, telefone, link_maps, quantidade_avaliacoes, nota_cras):
+def preenche_folha_cras(nome_cras, endereco, telefone, link_maps, path_planilha, quantidade_avaliacoes, nota_cras):
     """
     Preenche a folha 'CRAS' da planilha.\n
     :param nome_cras
@@ -149,12 +153,9 @@ def preenche_folha_cras(nome_cras, endereco, telefone, link_maps, quantidade_ava
     :param quantidade_avaliacoes
     :param nota_cras\n
     """
-
-    # Path da planilha com os resultados da extração de dados do maps
-    path_planilha_resultado = r"C:\Users\Usuário\Desktop\code\python\teste_bot\Resultado.xlsx"
     
     # Transforma as planilha em listas
-    planilha_resultado = BotExcelPlugin('CRAS').read(path_planilha_resultado)
+    planilha_resultado = BotExcelPlugin('CRAS').read(path_planilha)
     lista_planilha_resultado = planilha_resultado.as_list()
 
     # Armazena o número da linha que deve ser preenchida nas planilhas
@@ -169,14 +170,14 @@ def preenche_folha_cras(nome_cras, endereco, telefone, link_maps, quantidade_ava
     planilha_resultado.set_cell("E", linha_saida_folha_cras, link_maps, sheet="CRAS")
     planilha_resultado.set_cell("F", linha_saida_folha_cras, quantidade_avaliacoes, sheet="CRAS")
     planilha_resultado.set_cell("G", linha_saida_folha_cras, nota_cras, sheet="CRAS")
-    planilha_resultado.write(path_planilha_resultado)
+    planilha_resultado.write(path_planilha)
 
     # Incrementa as variáveis contadoras
     linha_saida_folha_cras += 1
 
     return linha_saida_folha_cras
 
-def preenche_folha_comentarios(nome_cras, id_comentario, data_comentario, nota_comentario, quantidade_comentarios_usuario, texto_comentario):
+def preenche_folha_comentarios(nome_cras, id_comentario, data_comentario, nota_comentario, path_planilha, quantidade_comentarios_usuario, texto_comentario):
     """
     Preenche a folha 'COMENTÁRIOS' da planilha.\n
     :param nome_cras
@@ -187,11 +188,8 @@ def preenche_folha_comentarios(nome_cras, id_comentario, data_comentario, nota_c
     :param texto_comentario\n
     """
     
-    # Path da planilha com os resultados da extração de dados do maps
-    path_planilha_resultado = r"C:\Users\Usuário\Desktop\code\python\teste_bot\Resultado.xlsx"
-    
     # Transforma as planilha em listas
-    planilha_resultado = BotExcelPlugin('COMENTÁRIOS').read(path_planilha_resultado)
+    planilha_resultado = BotExcelPlugin('COMENTÁRIOS').read(path_planilha)
     lista_planilha_resultado = planilha_resultado.as_list()
 
     # Armazena o número da linha que deve ser preenchida nas planilhas
@@ -206,12 +204,49 @@ def preenche_folha_comentarios(nome_cras, id_comentario, data_comentario, nota_c
     planilha_resultado.set_cell("E", linha_saida_folha_comentarios, nota_comentario, sheet="COMENTÁRIOS")
     planilha_resultado.set_cell("F", linha_saida_folha_comentarios, quantidade_comentarios_usuario, sheet="COMENTÁRIOS")
     planilha_resultado.set_cell("G", linha_saida_folha_comentarios, texto_comentario, sheet="COMENTÁRIOS")
-    planilha_resultado.write(path_planilha_resultado)
+    planilha_resultado.write(path_planilha)
     
     # Incrementa as variáveis contadoras
     linha_saida_folha_comentarios += 1
 
     return linha_saida_folha_comentarios           
+
+def estiliza_planilha(path_planilha):
+    """
+    Estiliza as folhas da planilha passada.
+    """
+    planilha = load_workbook(filename=path_planilha)
+    quantidade_folhas_planilha = len(planilha.sheetnames)
+
+    # Define o estilo usados
+    fundo_preto = PatternFill(start_color='000000', end_color='000000', fill_type='solid')
+    texto_branco_negrito = Font(color="FFFFFF", bold=True)
+    borda_fina = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Aplica os estilos células que possuem conteúdo
+    for numero_folha in range(quantidade_folhas_planilha):
+        planilha.active = numero_folha
+        folha = planilha.active
+
+        # Header
+        for celula in folha[1]:
+            celula.fill = fundo_preto
+            celula.font = texto_branco_negrito
+
+        # Células
+        for linha in folha.rows:
+            for celula in linha:
+                if celula.value is not None:
+                    celula.border = borda_fina
+        
+        bot.wait(100)
+
+    planilha.save(path_planilha)
 
 # Confere e atualiza/baixa o chromedriver
 autoupdate_chromedriver()
@@ -226,11 +261,17 @@ def main():
     # Path chromedriver
     bot.driver_path = r"C:\Users\Usuário\Desktop\code\python\chromedriver.exe"
 
+    # Path planilha
+    path_planilha = r"C:\Users\Usuário\Desktop\code\python\bots\bot-cras\Resultado.xlsx"
+
     # Pesquisa pelos CRAS do município analisado
     pesquisa_cras()
 
     # Extrai os dados dos cards do maps e preenche as folhas da planilha
-    extrai_dados_cras()
+    extrai_dados_cras(path_planilha)
+
+    # Estiza as folhas da planilha
+    estiliza_planilha(path_planilha)
 
 if __name__ == '__main__':
     main()
