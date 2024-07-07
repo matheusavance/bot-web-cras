@@ -1,16 +1,11 @@
 
-import botcity.web
-from shutil import move, rmtree
-from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.styles import Font, Border, Side
 from openpyxl.styles import PatternFill
 from webdriver_auto_update.chrome_app_utils import ChromeAppUtils
 from webdriver_auto_update.webdriver_manager import WebDriverManager
-from botcity.web.browsers.chrome import default_options
 from botcity.web import WebBot, Browser, By
 from botcity.plugins.excel import BotExcelPlugin
-from botcity.web.browsers.chrome import default_options
 
 # Instância WebBot
 bot = WebBot()
