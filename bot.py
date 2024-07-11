@@ -1,4 +1,5 @@
 
+import json
 from openpyxl import load_workbook
 from openpyxl.styles import Font, Border, Side
 from openpyxl.styles import PatternFill
@@ -28,13 +29,15 @@ def autoupdate_chromedriver():
     # Executa método main para gerenciar o chromedriver
     driver_manager.main()
 
-def pesquisa_cras():
+def pesquisa_cras(cidade, nome_estado):
     """
-    Preenche o campo de pesquisa do maps com o texto 'CRAS + MUNICÍPIO'.
+    Preenche o campo de pesquisa do maps com o texto 'CRAS + CIDADE + ESTADO'.\n
+    :param: cidade
+    :param: nome_estado
     """
 
     bot.browse("https://www.google.com/maps")
-    bot.find_element('searchboxinput', By.ID).send_keys('CRAS VITÓRIA')
+    bot.find_element('searchboxinput', By.ID).send_keys(f'cras {cidade} {nome_estado}')
     bot.enter()
 
     # Scrolldown para atualizar o número de cards
@@ -47,7 +50,7 @@ def pesquisa_cras():
 def extrai_dados_cras(path_planilha):
     """
     Coleta os dados de cada cras achado na pesquisa do maps.\n
-    :param path_planilha
+    :param path_planilha\n
     @return id_cras, nome, linha_saida_folha_cras, linha_saida_folha_comentarios 
     """
 
@@ -227,9 +230,10 @@ def preenche_folha_comentarios(id_cras, nome, id_comentario, data_comentario, no
 
 def estiliza_planilha(path_planilha):
     """
-    Estiliza as folhas da planilha passada.
+    Estiliza as folhas da planilha passada.\n
     :param path_planilha
     """
+    # Abre e carrega a planilha 
     planilha = load_workbook(filename=path_planilha)
     quantidade_folhas_planilha = len(planilha.sheetnames)
 
@@ -274,17 +278,21 @@ def main():
     # Path chromedriver
     bot.driver_path = r"C:\Users\Usuário\Desktop\code\python\chromedriver.exe"
 
-    # Path planilha
+    # Path planilha 'Resultado'
     path_planilha = r"C:\Users\Usuário\Desktop\code\python\bots\planilhas\Resultado.xlsx"
 
-    # Pesquisa pelos CRAS do município analisado
-    pesquisa_cras()
+    # Pesquisa/extrai dados do CRAS da cidade analisada e preenche a planilha 'Resultado'
+    with open('estados_cidades.json', 'r', encoding='utf-8') as arquivo_json:
+        dados = json.load(arquivo_json)
 
-    # Extrai os dados dos cards do maps e preenche as folhas da planilha
-    extrai_dados_cras(path_planilha)
+    for estado in dados['estados']:
+        nome_estado = estado['nome']
+        for cidade in estado['cidades']:    
+            pesquisa_cras(cidade, nome_estado)
 
-    # Estiza as folhas da planilha
-    estiliza_planilha(path_planilha)
+            extrai_dados_cras(path_planilha)
+            
+            estiliza_planilha(path_planilha)
 
 if __name__ == '__main__':
     main()
