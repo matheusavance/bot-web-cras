@@ -1,5 +1,6 @@
 
 import json
+import datetime
 from openpyxl import load_workbook
 from openpyxl.styles import Font, Border, Side
 from openpyxl.styles import PatternFill
@@ -155,7 +156,7 @@ def extrai_dados_cras(id_cras, cidade, nome_estado, path_planilha):
         id_cras = extracao_pesquisa_unica(id_cras, cidade, nome_estado, path_planilha)
         return id_cras
     
-    # Verifica se o resultado da pesquisa nop maps retornou mais de um card
+    # Verifica se o resultado da pesquisa no maps retornou mais de um card
     div_cards = bot.execute_javascript('return document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ecceSd")[1]')
     resultado_pesquisa = bot.find_element('//*[@id="QA0Szd"]/div/div/div[1]/div[2]/div/div[1]/div/div/div[1]/div[1]/div[2]/div[2]/div[1]/h1', By.XPATH, waiting_time=2000)
 
@@ -383,6 +384,15 @@ def estiliza_planilha(path_planilha):
 
     planilha.save(path_planilha)
 
+def registra_data_horario_atual(path_planilha):
+    # Registra a data e horário que a extração de dados foi feita
+    data_horario = datetime.datetime.now()
+    data_horario_extracao = f'{data_horario.day}/{data_horario.month}/{data_horario.year} - {data_horario.hour}:{data_horario.minute}'
+
+    # Preenche data e horário na folha 'CRAS'
+    planilha_resultado = BotExcelPlugin('CRAS').read(path_planilha)
+    planilha_resultado.set_cell('H', 2, data_horario_extracao)
+
 # Atualiza/baixa o chromedriver, caso necessário
 autoupdate_chromedriver()
 
@@ -390,7 +400,7 @@ def main():
     # Modo Headless
     bot.headless = False
 
-    # Navegador usado no processo   
+    # Navegador usado no processo
     bot.browser = Browser.CHROME
 
     # Path chromedriver
@@ -406,14 +416,17 @@ def main():
     # Inicializa a variável id_cras
     id_cras = 1
 
+    # Processo de extração de dados de cada cidade por estado e preenchumento das folhas da planilha
     for estado in dados['estados']:
         nome_estado = estado['nome']
         for cidade in estado['cidades']:    
             pesquisa_cras(cidade, nome_estado)
 
             id_cras = extrai_dados_cras(id_cras, cidade, nome_estado, path_planilha)
-            
+        
     estiliza_planilha(path_planilha)
+
+    registra_data_horario_atual(path_planilha)
 
 if __name__ == '__main__':
     main()
