@@ -52,7 +52,23 @@ def extracao_pesquisa_unica(id_cras, cidade, nome_estado, path_planilha):
 
     # Armazena o nome do CRAS
     nome = bot.execute_javascript('return document.getElementsByClassName("DUwDvf")[0].textContent')
-
+    
+    # Checa se a div com as informações do card existe
+    div_botoes_informacoes = bot.execute_javascript(f'return document.getElementsByClassName("yx21af lLU2pe XDi3Bc")[0]')
+    if not div_botoes_informacoes:
+        # Adota valores padrões para o caso de não haver avaliações e cria uma lista com os dados coletados
+        endereco = "Sem endereço" 
+        telefone = "Sem telefone" 
+        link_maps = "Sem link"
+        quantidade_avaliacoes = "Não existem avaliações"
+        nota_cras = "Sem nota" 
+        lista_variaveis_folha_cras = [id_cras, nome, cidade, nome_estado, endereco, telefone, link_maps, quantidade_avaliacoes, nota_cras]
+        
+        # Preenche a folha 'CRAS' da planilha com os dados extraídos
+        id_cras = preenche_folha_cras(lista_variaveis_folha_cras, path_planilha)
+        id_cras += 1
+        return id_cras  
+    
     # Armazena o endereço do CRAS
     endereco = bot.execute_javascript('return document.getElementsByClassName("Io6YTe fontBodyMedium kR99db")[0].textContent')
 
@@ -181,6 +197,22 @@ def extrai_dados_cras(id_cras, cidade, nome_estado, path_planilha):
 
             # Armazena o nome do CRAS
             nome = bot.execute_javascript('return document.getElementsByClassName("DUwDvf")[0].textContent')
+
+            # Checa se a div com as informações do card existe
+            div_botoes_informacoes = bot.execute_javascript(f'return document.getElementsByClassName("yx21af lLU2pe XDi3Bc")[0]')
+            if not div_botoes_informacoes:
+                # Adota valores padrões para o caso de não haver avaliações e cria uma lista com os dados coletados
+                endereco = "Sem endereço" 
+                telefone = "Sem telefone" 
+                link_maps = "Sem link"
+                quantidade_avaliacoes = "Não existem avaliações"
+                nota_cras = "Sem nota" 
+                lista_variaveis_folha_cras = [id_cras, nome, cidade, nome_estado, endereco, telefone, link_maps, quantidade_avaliacoes, nota_cras]
+                
+                # Preenche a folha 'CRAS' da planilha com os dados extraídos
+                id_cras = preenche_folha_cras(lista_variaveis_folha_cras, path_planilha)
+                id_cras += 1
+                return id_cras    
 
             # Armazena o endereço do CRAS
             endereco = bot.execute_javascript('return document.getElementsByClassName("Io6YTe fontBodyMedium kR99db")[0].textContent')
@@ -392,6 +424,7 @@ def registra_data_horario_atual(path_planilha):
     # Preenche data e horário na folha 'CRAS'
     planilha_resultado = BotExcelPlugin('CRAS').read(path_planilha)
     planilha_resultado.set_cell('H', 2, data_horario_extracao)
+    planilha_resultado.write(path_planilha)
 
 # Atualiza/baixa o chromedriver, caso necessário
 autoupdate_chromedriver()
@@ -407,7 +440,7 @@ def main():
     bot.driver_path = r"C:\Users\Usuário\Desktop\code\python\chromedriver.exe"
 
     # Path planilha 'Resultado'
-    path_planilha = r"C:\Users\Usuário\Desktop\code\python\bots\planilhas\Resultado.xlsx"
+    path_planilha = r"C:\Users\Usuário\Desktop\code\python\bots\bot-web-cras\planilhas\Resultado.xlsx"
 
     # Pesquisa/extrai dados do CRAS da cidade analisada e preenche a planilha 'Resultado'
     with open('estados_cidades_sp.json', 'r', encoding='utf-8') as arquivo_json:
@@ -416,10 +449,14 @@ def main():
     # Inicializa a variável id_cras
     id_cras = 1
 
-    # Processo de extração de dados de cada cidade por estado e preenchumento das folhas da planilha
     for estado in dados['estados']:
         nome_estado = estado['nome']
-        for cidade in estado['cidades']:    
+        for cidade in estado['cidades']:
+            print('------------------------------------') 
+            print(f'CIDADE: {cidade}')    
+            print(f'ESTADO: {nome_estado}')
+            print('------------------------------------')    
+
             pesquisa_cras(cidade, nome_estado)
 
             id_cras = extrai_dados_cras(id_cras, cidade, nome_estado, path_planilha)
