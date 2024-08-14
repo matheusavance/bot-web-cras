@@ -98,14 +98,14 @@ def extracao_pesquisa_unica(id_cras, cidade, nome_estado, path_planilha):
             bot.wait(2000)
 
             # Scrolldown para atualizar o número de comentários
-            altura_atual_div_card = bot.execute_javascript('return document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[0].scrollHeight')
-            while True:
-                bot.execute_javascript('lista = document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[0]; document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[0].scrollTo(0, lista.scrollHeight)')
-                bot.wait(2000)
-                nova_altura_div_card = bot.execute_javascript('return document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[0].scrollHeight')
-                if nova_altura_div_card == altura_atual_div_card:
-                    break
-                altura_atual_div_card = nova_altura_div_card
+            # altura_atual_div_card = bot.execute_javascript('return document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[0].scrollHeight')
+            # while True:
+            #     bot.execute_javascript('lista = document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[0]; document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[0].scrollTo(0, lista.scrollHeight)')
+            #     bot.wait(2000)
+            #     nova_altura_div_card = bot.execute_javascript('return document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[0].scrollHeight')
+            #     if nova_altura_div_card == altura_atual_div_card:
+            #         break
+            #     altura_atual_div_card = nova_altura_div_card
 
             # Armazena a nota e a quantidades de avaliações do CRAS
             quantidade_avaliacoes = bot.find_element('//*[@id="QA0Szd"]/div/div/div[1]/div[2]/div/div[1]/div/div/div[2]/div[2]/div/div[2]/div[3]', By.XPATH).text
@@ -244,14 +244,14 @@ def extrai_dados_cras(id_cras, cidade, nome_estado, path_planilha):
                     bot.wait(2000)
 
                     # Scrolldown para atualizar o número de comentários
-                    altura_atual_div_card = bot.execute_javascript('return document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[2].scrollHeight')
-                    while True:
-                        bot.execute_javascript('lista = document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[2]; document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[2].scrollTo(0, lista.scrollHeight)')
-                        bot.wait(2000)
-                        nova_altura_div_card = bot.execute_javascript('return document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[2].scrollHeight')
-                        if nova_altura_div_card == altura_atual_div_card:
-                            break
-                        altura_atual_div_card = nova_altura_div_card
+                    # altura_atual_div_card = bot.execute_javascript('return document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[2].scrollHeight')
+                    # while True:
+                    #     bot.execute_javascript('lista = document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[2]; document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[2].scrollTo(0, lista.scrollHeight)')
+                    #     bot.wait(2000)
+                    #     nova_altura_div_card = bot.execute_javascript('return document.getElementsByClassName("m6QErb DxyBCb kA9KIf dS8AEf XiKgde ")[2].scrollHeight')
+                    #     if nova_altura_div_card == altura_atual_div_card:
+                    #         break
+                    #     altura_atual_div_card = nova_altura_div_card
 
                 else:
                     # Adota valores padrões para o caso de não haver avaliações e cria uma lista com os dados coletados
@@ -301,7 +301,9 @@ def extrai_dados_comentarios_cras(id_cras, nome, path_planilha):
 
     # Armazena os dados sobre os comentários
     quantidade_comentarios = bot.execute_javascript('return document.getElementsByClassName("al6Kxe").length')
-    contador_childElements = 0
+    if quantidade_comentarios > 5:
+        quantidade_comentarios = 5
+    
     for comentario in range(quantidade_comentarios):
         id_comentario = bot.execute_javascript(f'return document.getElementsByClassName("d4r55")[{comentario}].textContent')
         data_comentario = bot.execute_javascript(f'return document.getElementsByClassName("rsqaWe")[{comentario}].textContent')
@@ -321,7 +323,6 @@ def extrai_dados_comentarios_cras(id_cras, nome, path_planilha):
         lista_variaveis_folha_comentarios = [id_cras, nome, id_comentario, data_comentario, nota_comentario, quantidade_comentarios_usuario, texto_comentario]
 
         id_cras = preenche_folha_comentarios(lista_variaveis_folha_comentarios, path_planilha)
-        contador_childElements += 1
 
     # Incrementa a variável id_cras
     id_cras += 1
