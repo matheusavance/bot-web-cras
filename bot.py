@@ -424,7 +424,7 @@ def registra_data_horario_atual(path_planilha):
 
     # Preenche data e horário na folha 'CRAS'
     planilha_resultado = BotExcelPlugin('CRAS').read(path_planilha)
-    planilha_resultado.set_cell('H', 2, data_horario_extracao)
+    planilha_resultado.set_cell('J', 2, data_horario_extracao)
     planilha_resultado.write(path_planilha)
 
 # Atualiza/baixa o chromedriver, caso necessário
@@ -443,8 +443,11 @@ def main():
     # Path planilha 'Resultado'
     path_planilha = r"C:\Users\Usuário\Desktop\code\python\bots\bot-web-cras\planilhas\Resultado.xlsx"
 
+    # Path planilha 'Resultado'
+    path_arquvo_json = r"C:\Users\Usuário\Desktop\code\python\bots\bot-web-cras\estados_cidades_json\estados_cidades_sp.json"
+
     # Pesquisa/extrai dados do CRAS da cidade analisada e preenche a planilha 'Resultado'
-    with open('estados_cidades_sp.json', 'r', encoding='utf-8') as arquivo_json:
+    with open(path_arquvo_json, 'r', encoding='utf-8') as arquivo_json:
         dados = json.load(arquivo_json)
 
     # Armazena o número de linhas da planilha
@@ -471,9 +474,9 @@ def main():
 
             id_cras = extrai_dados_cras(id_cras, cidade, nome_estado, path_planilha)
         
-    estiliza_planilha(path_planilha)
-
     registra_data_horario_atual(path_planilha)
+
+    estiliza_planilha(path_planilha)
 
 if __name__ == '__main__':
     main()
