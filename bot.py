@@ -83,7 +83,7 @@ def extracao_pesquisa_unica(id_cras, cidade, nome_estado, path_planilha):
             telefone = 'Sem telefone'
 
     # Armazena o link do maps do CRAS
-    bot.execute_javascript('document.getElementsByClassName("m6QErb Pf6ghf XiKgde ecceSd tLjsW ")[0].children[4].children[0].click()')
+    bot.execute_javascript('document.getElementsByClassName("m6QErb Pf6ghf XiKgde ecceSd tLjsW ")[0].lastChild.childNodes[0].click()')
     link_maps = bot.find_element('/html/body/div[1]/div[3]/div[1]/div/div[2]/div/div[2]/div/div/div/div[3]/div[2]/div[2]/input', By.XPATH)
     bot.wait_for_element_visibility(link_maps)
     link_maps = bot.execute_javascript('return document.getElementsByClassName("vrsrZe")[0].value')
@@ -229,7 +229,7 @@ def extrai_dados_cras(id_cras, cidade, nome_estado, path_planilha):
                     telefone = 'Sem telefone'
                 
             # Armazena o link do maps do CRAS
-            bot.execute_javascript('document.getElementsByClassName("m6QErb Pf6ghf XiKgde ecceSd tLjsW ")[0].children[4].children[0].click()')
+            bot.execute_javascript('document.getElementsByClassName("m6QErb Pf6ghf XiKgde ecceSd tLjsW ")[0].lastChild.childNodes[0].click()')
             link_maps = bot.find_element('/html/body/div[1]/div[3]/div[1]/div/div[2]/div/div[2]/div/div/div/div[3]/div[2]/div[2]/input', By.XPATH)
             bot.wait_for_element_visibility(link_maps)
             link_maps = bot.execute_javascript('return document.getElementsByClassName("vrsrZe")[0].value')
@@ -444,10 +444,10 @@ def main():
     path_planilha = r"C:\Users\Usuário\Desktop\code\python\bots\bot-web-cras\planilhas\Resultado.xlsx"
 
     # Path planilha 'Resultado'
-    path_arquvo_json = r"C:\Users\Usuário\Desktop\code\python\bots\bot-web-cras\estados_cidades_json\estados_cidades_sp.json"
+    path_arquivo_json = r"C:\Users\Usuário\Desktop\code\python\bots\bot-web-cras\estados_cidades_json\estados_cidades_sp.json"
 
     # Pesquisa/extrai dados do CRAS da cidade analisada e preenche a planilha 'Resultado'
-    with open(path_arquvo_json, 'r', encoding='utf-8') as arquivo_json:
+    with open(path_arquivo_json, 'r', encoding='utf-8') as arquivo_json:
         dados = json.load(arquivo_json)
 
     # Armazena o número de linhas da planilha
@@ -472,7 +472,7 @@ def main():
 
             pesquisa_cras(cidade, nome_estado)
 
-            id_cras = extrai_dados_cras(id_cras, cidade, nome_estado, path_planilha)
+            extrai_dados_cras(id_cras, cidade, nome_estado, path_planilha)
         
     registra_data_horario_atual(path_planilha)
 
