@@ -443,7 +443,7 @@ def main():
     # Path planilha 'Resultado'
     path_planilha = r"C:\Users\Usuário\Desktop\code\python\bots\bot-web-cras\planilhas\Resultado.xlsx"
 
-    # Path planilha 'Resultado'
+    # Path arquivo JSON
     path_arquivo_json = r"C:\Users\Usuário\Desktop\code\python\bots\bot-web-cras\estados_cidades_json\estados_cidades_sp.json"
 
     # Pesquisa/extrai dados do CRAS da cidade analisada e preenche a planilha 'Resultado'
